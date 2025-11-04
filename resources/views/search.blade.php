@@ -1,5 +1,7 @@
 @extends('layouts.app')
 
+@section('body-class', 'search-page')
+
 @section('content')
 <div class="search-page">
     <div class="container py-4">

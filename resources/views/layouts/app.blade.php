@@ -12,44 +12,7 @@
     <link rel="dns-prefetch" href="//fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=Nunito" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-    @vite(['resources/css/app.css', 'resources/css/recipes.css', 'resources/js/app.js'])
-    <style>
-        .search-form-navbar {
-            min-width: 250px;
-            max-width: 400px;
-        }
-        .search-navbar-input {
-            border: 1px solid #ced4da;
-            border-right: none;
-            padding: 0.5rem 0.75rem;
-        }
-        .search-navbar-input:focus {
-            box-shadow: none;
-            border-color: #000;
-        }
-        .btn-search-navbar {
-            border: 1px solid #000;
-            background: #000;
-            color: #fff;
-            padding: 0.5rem 0.75rem;
-            transition: all 0.3s;
-        }
-        .btn-search-navbar:hover {
-            background: #333;
-            border-color: #333;
-            color: #fff;
-        }
-        .btn-search-navbar i {
-            font-size: 0.9rem;
-        }
-        /* Responsive */
-        @media (max-width: 991px) {
-            .search-form-navbar {
-                margin: 1rem 0;
-                min-width: 100%;
-            }
-        }
-    </style>
+    @vite(['resources/css/app.css', 'resources/css/recipes.css', 'resources/css/navbar.css', 'resources/js/app.js'])
     
 <!-- Yandex.Metrika counter -->
 <script type="text/javascript">
@@ -68,87 +31,89 @@
 
 
 </head>
-<body>
+<body class="@yield('body-class')">
     <div id="app">
-        <nav class="navbar navbar-expand-md navbar-light bg-white shadow-sm">
+        <nav class="navbar navbar-expand-md navbar-light bg-white shadow-sm sticky-top">
             <div class="container">
-                <a class="navbar-brand" href="{{ url('/') }}">
-                    {{ config('app.name', 'Laravel') }}
+                <a class="navbar-brand d-flex align-items-center" href="{{ url('/') }}">
+                    <span>🍽️ {{ config('app.name', 'Laravel') }}</span>
                 </a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
                     data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent"
-                    aria-expanded="false" aria-label="{{ __('Toggle navigation') }}">
+                    aria-expanded="false" aria-label="Открыть меню">
                     <span class="navbar-toggler-icon"></span>
                 </button>
                 <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                    <!-- Левое меню -->
                     <ul class="navbar-nav me-auto">
                         <li class="nav-item">
-                            <a class="nav-link" href="{{ route('home') }}">
-                                <i class="bi bi-house-fill"></i> Главная
+                            <a class="nav-link {{ Request::is('/') ? 'active' : '' }}" href="{{ route('home') }}">
+                                <i class="bi bi-house-fill"></i>
+                                <span>Главная</span>
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="{{ route('categories.index') }}">
-                                <i class="bi bi-collection-fill"></i> Категории
+                            <a class="nav-link {{ Request::is('categories*') ? 'active' : '' }}" href="{{ route('categories.index') }}">
+                                <i class="bi bi-collection-fill"></i>
+                                <span>Категории</span>
                             </a>
                         </li>
                         @auth
                             @if (Auth::user()->isAdmin())
                                 <li class="nav-item">
-                                    <a class="nav-link" href="{{ route('admin.index') }}">
-                                        <i class="bi bi-gear-fill"></i> Админка
+                                    <a class="nav-link {{ Request::is('admin*') ? 'active' : '' }}" href="{{ route('admin.index') }}">
+                                        <i class="bi bi-gear-fill"></i>
+                                        <span>Админка</span>
                                     </a>
                                 </li>
                             @endif
                         @endauth
                     </ul>
-                    <form action="{{ route('search') }}" method="GET" class="d-flex mx-3 search-form-navbar">
-                        <div class="input-group input-group-sm">
-                            <input type="text" name="q" class="form-control search-navbar-input"
-                                placeholder="Поиск рецептов..." value="{{ request('q') }}"
-                                aria-label="Поиск рецептов">
-                            <button type="submit" class="btn btn-dark btn-search-navbar">
-                                <i class="bi bi-search"></i>
-                            </button>
-                        </div>
-                    </form>
+
+                    <!-- Правое меню (только для авторизованных пользователей-админов) -->
                     <ul class="navbar-nav ms-auto">
-                        @guest
-                            @if (Route::has('login'))
-                                <li class="nav-item">
-                                    <a class="nav-link" href="{{ route('login') }}">{{ __('Login') }}</a>
-                                </li>
-                            @endif
-                            @if (Route::has('register'))
-                                <li class="nav-item">
-                                    <a class="nav-link" href="{{ route('register') }}">{{ __('Register') }}</a>
-                                </li>
-                            @endif
-                        @else
+                        @auth
                             <li class="nav-item dropdown">
-                                <a id="navbarDropdown" class="nav-link dropdown-toggle" href="#" role="button"
-                                    data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" v-pre>
-                                    {{ Auth::user()->name }}
+                                <a id="navbarDropdown" class="nav-link dropdown-toggle d-flex align-items-center" 
+                                   href="#" role="button"
+                                   data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                    <i class="bi bi-person-circle"></i>
+                                    <span class="ms-1">{{ Auth::user()->name }}</span>
                                 </a>
                                 <div class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
                                     <a class="dropdown-item" href="{{ route('logout') }}"
                                         onclick="event.preventDefault();
-                                                     document.getElementById('logout-form').submit();">
-                                        {{ __('Logout') }}
+                                                 document.getElementById('logout-form').submit();">
+                                        <i class="bi bi-box-arrow-right"></i> Выход
                                     </a>
                                     <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
                                         @csrf
                                     </form>
                                 </div>
                             </li>
-                        @endguest
+                        @endauth
                     </ul>
                 </div>
             </div>
-    </nav>
+        </nav>
         <main class="py-4">
             @yield('content')
         </main>
     </div>
+
+    <!-- Кнопка "Назад" для мобильных -->
+    <button class="btn-back-mobile" onclick="window.history.back()" aria-label="Вернуться назад">
+        <i class="bi bi-arrow-left"></i>
+    </button>
+
+    <script>
+        // Скрываем кнопку "Назад" если нет истории
+        window.addEventListener('DOMContentLoaded', function() {
+            const backBtn = document.querySelector('.btn-back-mobile');
+            if (backBtn && window.history.length <= 1) {
+                backBtn.style.display = 'none';
+            }
+        });
+    </script>
 </body>
 </html>

@@ -1,6 +1,11 @@
 @extends('layouts.app')
 
+@section('body-class', 'categories-page')
+
 @section('content')
+{{-- Поиск рецептов --}}
+@include('components.search-form')
+
 <div class="categories-page">
     <div class="container">
         <h1 class="page-title">Каталог рецептов по категориям</h1>

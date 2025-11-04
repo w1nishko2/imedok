@@ -7,6 +7,7 @@ export default defineConfig({
             input: [
                 'resources/css/app.css',
                 'resources/css/recipes.css',
+                'resources/css/navbar.css',
                 'resources/js/app.js',
             ],
             refresh: true,

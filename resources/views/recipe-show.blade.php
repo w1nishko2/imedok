@@ -1,5 +1,7 @@
 @extends('layouts.app')
 
+@section('body-class', 'recipe-page')
+
 @section('content')
 <article class="recipe-page" itemscope itemtype="https://schema.org/Recipe">
     <!-- Container для всего контента -->

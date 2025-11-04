@@ -5,7 +5,7 @@ Disallow: /login
 Disallow: /register
 
 # Sitemap
-Sitemap: https://im-edok/sitemap.xml
+Sitemap: https://im-edok.ru/sitemap.xml
 
 # Crawl-delay для вежливого краулинга
 Crawl-delay: 1

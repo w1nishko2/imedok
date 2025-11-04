@@ -1,6 +1,11 @@
 @extends('layouts.app')
 
+@section('body-class', 'home-page')
+
 @section('content')
+{{-- Поиск рецептов --}}
+@include('components.search-form')
+
 <div class="custom-page" itemscope itemtype="https://schema.org/WebPage">
     <div class="container">
         <header class="text-center mb-5">
