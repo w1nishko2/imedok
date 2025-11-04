@@ -13,24 +13,3 @@
     # Redirect to public folder
     RewriteRule ^(.*)$ public/$1 [L,QSA]
 </IfModule>
-
-# If mod_rewrite is not available, show index.php from public
-<IfModule !mod_rewrite.c>
-    # Allow direct access to public folder
-    DirectoryIndex public/index.php index.php
-</IfModule>
-
-# Security: Prevent directory listing
-Options -Indexes
-
-# Security: Disable access to .env and other sensitive files
-<FilesMatch "^\.">
-    Order allow,deny
-    Deny from all
-</FilesMatch>
-
-# Allow .well-known folder (for security.txt, etc.)
-<DirectoryMatch "\.well-known">
-    Order allow,deny
-    Allow from all
-</DirectoryMatch>
