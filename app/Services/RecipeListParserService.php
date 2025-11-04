@@ -31,76 +31,45 @@ class RecipeListParserService
     }
 
     /**
-     * Парсинг списка рецептов со страницы с поддержкой множественных "скроллов"
+     * Получить список URL рецептов с одной конкретной страницы
+     * Использует разные разделы сайта для получения большего разнообразия
      *
      * @param int $page Номер страницы
-     * @param int $scrolls Количество "скроллов" (подгрузок) на одной странице
      * @return array Массив URL рецептов
      */
-    public function parseRecipesList(int $page = 1, int $scrolls = 3): array
+    public function parseRecipesList(int $page = 1): array
     {
-        $allRecipeUrls = [];
-
         try {
-            // Парсим основную страницу
-            $mainUrl = $this->baseUrl . '/cooking/new';
+            // Разные разделы сайта для парсинга
+            $sections = [
+                '/cooking',           // Все рецепты
+                '/cooking/new',       // Новые рецепты
+                '/cooking/popular',   // Популярные
+                '/catalog',           // Каталог
+            ];
             
-            if ($page > 1) {
-                $mainUrl .= '?page=' . $page;
+            // Циклически выбираем раздел
+            $sectionIndex = ($page - 1) % count($sections);
+            $section = $sections[$sectionIndex];
+            $actualPage = (int)ceil($page / count($sections));
+            
+            // Формируем URL
+            $pageUrl = $this->baseUrl . $section;
+            if ($actualPage > 1) {
+                $pageUrl .= '?page=' . $actualPage;
             }
 
-            Log::info("🔍 Парсинг основной страницы: {$mainUrl}");
+            Log::info("🔍 Парсинг страницы {$page} (раздел: {$section}, стр.{$actualPage}): {$pageUrl}");
 
-            // Первая загрузка - получаем начальный контент
-            $recipes = $this->fetchRecipesFromUrl($mainUrl);
-            $allRecipeUrls = array_merge($allRecipeUrls, $recipes);
+            $recipes = $this->fetchRecipesFromUrl($pageUrl);
             
-            Log::info("✅ Первая загрузка: найдено " . count($recipes) . " рецептов");
+            Log::info("✅ Страница {$page}: найдено " . count($recipes) . " рецептов");
 
-            // Эмулируем скроллы - пробуем разные варианты пагинации
-            for ($scroll = 1; $scroll < $scrolls; $scroll++) {
-                sleep(2); // Задержка между запросами, чтобы не нагружать сервер
-                
-                // Пробуем разные варианты URL для динамической подгрузки
-                $scrollUrls = [
-                    // Вариант 1: offset параметр
-                    $mainUrl . (strpos($mainUrl, '?') !== false ? '&' : '?') . 'offset=' . ($scroll * $this->recipesPerScroll),
-                    // Вариант 2: start параметр
-                    $mainUrl . (strpos($mainUrl, '?') !== false ? '&' : '?') . 'start=' . ($scroll * $this->recipesPerScroll),
-                    // Вариант 3: from параметр
-                    $mainUrl . (strpos($mainUrl, '?') !== false ? '&' : '?') . 'from=' . ($scroll * $this->recipesPerScroll),
-                    // Вариант 4: виртуальная страница
-                    $this->baseUrl . '/cooking/new?page=' . (($page - 1) * $scrolls + $scroll + 1),
-                ];
-
-                foreach ($scrollUrls as $scrollUrl) {
-                    Log::info("🔄 Скролл #{$scroll}, пробуем: {$scrollUrl}");
-                    
-                    $scrollRecipes = $this->fetchRecipesFromUrl($scrollUrl);
-                    
-                    if (!empty($scrollRecipes)) {
-                        // Проверяем, что это новые рецепты
-                        $newRecipes = array_diff($scrollRecipes, $allRecipeUrls);
-                        
-                        if (!empty($newRecipes)) {
-                            $allRecipeUrls = array_merge($allRecipeUrls, $newRecipes);
-                            Log::info("✅ Скролл #{$scroll}: добавлено " . count($newRecipes) . " новых рецептов");
-                            break; // Нашли рабочий вариант, переходим к следующему скроллу
-                        } else {
-                            Log::info("⚠️ Скролл #{$scroll}: дубликаты, пробуем следующий вариант");
-                        }
-                    }
-                }
-            }
-
-            $allRecipeUrls = array_unique($allRecipeUrls);
-            Log::info("🎉 Итого найдено уникальных рецептов: " . count($allRecipeUrls));
-
-            return $allRecipeUrls;
+            return $recipes;
 
         } catch (\Exception $e) {
-            Log::error("❌ Ошибка парсинга списка рецептов: " . $e->getMessage());
-            return $allRecipeUrls;
+            Log::error("❌ Ошибка парсинга страницы {$page}: " . $e->getMessage());
+            return [];
         }
     }
 
@@ -146,39 +115,74 @@ class RecipeListParserService
     }
 
     /**
-     * Получить рецепты с нескольких страниц с поддержкой скроллов
+     * Собрать точное количество НОВЫХ рецептов (которых еще нет в базе)
      * Автоматически фильтрует уже существующие в базе рецепты
      *
-     * @param int $pagesCount Количество страниц для парсинга
-     * @param int $scrollsPerPage Количество "скроллов" на каждой странице
-     * @return array Массив URL рецептов (только новые)
+     * @param int $targetCount Целевое количество НОВЫХ рецептов
+     * @return array Массив URL новых рецептов
      */
-    public function parseMultiplePages(int $pagesCount = 1, int $scrollsPerPage = 3): array
+    public function parseMultiplePages(int $targetCount = 30): array
     {
-        $allRecipes = [];
-
-        for ($page = 1; $page <= $pagesCount; $page++) {
-            Log::info("📄 Обработка страницы {$page} из {$pagesCount}");
+        Log::info("🎯 Задача: найти {$targetCount} НОВЫХ рецептов (которых нет в БД)");
+        
+        $newRecipes = [];
+        $currentPage = 1;
+        $maxPages = 100; // Максимум страниц для защиты от бесконечного цикла
+        $totalChecked = 0;
+        $emptyPagesCount = 0;
+        $maxEmptyPages = 5; // Если 5 страниц подряд пустые - останавливаемся
+        
+        while (count($newRecipes) < $targetCount && $currentPage <= $maxPages) {
+            // Получаем все URL с текущей страницы
+            $pageRecipes = $this->parseRecipesList($currentPage);
             
-            $recipes = $this->parseRecipesList($page, $scrollsPerPage);
-            $allRecipes = array_merge($allRecipes, $recipes);
-            
-            Log::info("📊 Страница {$page}: всего собрано " . count($allRecipes) . " рецептов");
-            
-            // Задержка между страницами
-            if ($page < $pagesCount) {
+            if (empty($pageRecipes)) {
+                $emptyPagesCount++;
+                Log::warning("⚠️ Страница {$currentPage} пустая ({$emptyPagesCount}/{$maxEmptyPages})");
+                
+                if ($emptyPagesCount >= $maxEmptyPages) {
+                    Log::warning("⚠️ {$maxEmptyPages} пустых страниц подряд - останавливаем парсинг");
+                    break;
+                }
+                
+                $currentPage++;
                 sleep(2);
+                continue;
             }
+            
+            $emptyPagesCount = 0; // Сбрасываем счетчик пустых страниц
+            $totalChecked += count($pageRecipes);
+            
+            // Фильтруем - оставляем только те URL, которых НЕТ в базе
+            $filtered = $this->filterExistingRecipes($pageRecipes);
+            
+            if (empty($filtered)) {
+                Log::info("📊 Страница {$currentPage}: все " . count($pageRecipes) . " рецептов уже в БД (проверено {$totalChecked} URL)");
+            } else {
+                Log::info("📊 Страница {$currentPage}: из " . count($pageRecipes) . " рецептов, новых: " . count($filtered));
+                
+                // Добавляем новые рецепты (ровно столько, сколько нужно до цели)
+                $needMore = $targetCount - count($newRecipes);
+                $toAdd = array_slice($filtered, 0, $needMore);
+                
+                $newRecipes = array_merge($newRecipes, $toAdd);
+                
+                Log::info("✅ Собрано новых рецептов: " . count($newRecipes) . "/{$targetCount}");
+                
+                // Если достигли цели - выходим
+                if (count($newRecipes) >= $targetCount) {
+                    break;
+                }
+            }
+            
+            $currentPage++;
+            sleep(2); // Задержка между страницами
         }
-
-        $uniqueRecipes = array_unique($allRecipes);
-        Log::info("🏁 Найдено уникальных URL: " . count($uniqueRecipes));
-
-        // Автоматически фильтруем уже существующие рецепты
-        $newRecipes = $this->filterExistingRecipes($uniqueRecipes);
-        Log::info("✅ Новых рецептов (еще не в БД): " . count($newRecipes));
-        Log::info("⏭️ Пропущено (уже в БД): " . (count($uniqueRecipes) - count($newRecipes)));
-
+        
+        Log::info("🏁 Итого собрано НОВЫХ рецептов: " . count($newRecipes) . "/{$targetCount}");
+        Log::info("📈 Всего проверено URL: {$totalChecked}");
+        Log::info("📄 Просмотрено страниц: {$currentPage}");
+        
         return $newRecipes;
     }
 

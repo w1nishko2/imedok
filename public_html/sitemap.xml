@@ -2,9 +2,119 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1" xmlns:news="http://www.google.com/schemas/sitemap-news/0.9">
   <url>
     <loc>https://im-edok</loc>
-    <lastmod>2025-11-04T13:19:11+00:00</lastmod>
+    <lastmod>2025-11-04T13:55:39+00:00</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://im-edok/recipe/ris-na-skovorode</loc>
+    <lastmod>2025-11-04T13:55:39+00:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://im-edok/storage/recipes/ugJJ1OYfdPHrrZBXHKKmtsyzoXbGl0SzjGQp9kZL.jpg</image:loc>
+      <image:title>Рис на сковороде рассыпчатый</image:title>
+      <image:caption>Просто, очень вкусно, на скорую руку, на каждый день! Рассыпчатый рис на сковороде готовится из двух ингредиентов - самой крупы и лука. Идеальный гарнир на любые случаи. Хорош еще и тем, что его можно</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://im-edok/recipe/krabovyi-salat-klassicheskii-bez-risa</loc>
+    <lastmod>2025-11-04T13:55:33+00:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://im-edok/storage/recipes/PvkrepQxAPxCdGHzSKQ89PSvogX9bj6FIgVSDAXl.jpg</image:loc>
+      <image:title>Салат крабовый классический с кукурузой и рисом</image:title>
+      <image:caption>Всегда пользуется успехом у гостей. На праздник и на будни! Классический крабовый салат с рисом и кукурузой - сытный, нежный и сочный. На его активное приготовление уйдет минимум времени, а результат </image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://im-edok/recipe/xolodec-klassicheskii</loc>
+    <lastmod>2025-11-04T13:55:29+00:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://im-edok/storage/recipes/bhqdl9QUTwZUcj3x3gIcqVfAPp7r4YNs2WjtOrGI.jpg</image:loc>
+      <image:title>Холодец классический</image:title>
+      <image:caption>Самая лучшая, самая вкусная закуска на праздничный стол! Холодец классический - это традиционное русское блюдо для любого торжественного случая. Можете варить его в мультиварке, это проще и быстрее вс</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://im-edok/recipe/rojdestvenskii-shtollen</loc>
+    <lastmod>2025-11-04T13:55:25+00:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://im-edok/storage/recipes/p5rrQttuMhaDaY4wigrnE9TOwpkH4A5VwRwwKxEi.JPG</image:loc>
+      <image:title>Рождественский штоллен</image:title>
+      <image:caption>Ароматный, пышный, праздничный, красивый, очень вкусный! Рождественский штоллен - это традиционная немецкая выпечка из дрожжевого сдобного теста. Особенность его в том, что уже готовым штоллен выстаив</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://im-edok/recipe/kak-posolit-forel-v-domashnix-usloviyax</loc>
+    <lastmod>2025-11-04T13:55:22+00:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://im-edok/storage/recipes/33Dm97jugGHV5POmEglQE4IvgqTaYpAHLu7rkJVB.jpg</image:loc>
+      <image:title>Как посолить форель в домашних условиях</image:title>
+      <image:caption>Вкусно, просто, на любой случай. Справится любая хозяйка! Посолить форель в домашних условиях не составит особого труда. Этот способ посола хорошо подходит для радужной и золотистой форели. Использова</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://im-edok/recipe/salat-olive-s-molochnoi-kolbasoi</loc>
+    <lastmod>2025-11-04T13:55:19+00:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://im-edok/storage/recipes/NC5HhcLaofG8fYIz9BlllEirJiTqgwTkAvo845k2.jpg</image:loc>
+      <image:title>Салат оливье классический с колбасой и горошком</image:title>
+      <image:caption>Вкуснейший, самый лучший среди всех, на праздничный стол! Классический оливье с колбасой и зеленым горошком - простой и вкусный салат советских времен, который быстро и легко готовится. Заправлять его</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://im-edok/recipe/salat-kurica-s-ananasami-syrom-i-chesnokom</loc>
+    <lastmod>2025-11-04T13:55:17+00:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://im-edok/storage/recipes/aSElhvik4wO3roJJdmVDx7f5Q3cKDOkrSDvSqgNd.jpg</image:loc>
+      <image:title>Салат с ананасом и курицей и сыром с чесноком</image:title>
+      <image:caption>С ярким и неповторимым вкусом - не оставит равнодушным! Салат с ананасом и курицей и сыром с чесноком - это беспроигрышное сочетание вкусов! Классика жанра. Такой салат можно приготовить как на обычны</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://im-edok/recipe/salat-mimoza</loc>
+    <lastmod>2025-11-04T13:55:15+00:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://im-edok/storage/recipes/uAnmNNRbCzIWVQw7H1rJYlqZBHWZu5jMLGGzLD8d.jpg</image:loc>
+      <image:title>Салат Мимоза с рыбными консервами и картошкой классический</image:title>
+      <image:caption>Самый вкусный и красивый - произведет фурор! Классический салат Мимоза с рыбными консервами и картошкой - один из самых популярных салатов на протяжении нескольких десятилетий. Без него не обходится н</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://im-edok/recipe/bento-tort-koreiskii</loc>
+    <lastmod>2025-11-04T13:55:11+00:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://im-edok/storage/recipes/zOnKaipEGwqVSh0pPnh4BgTozqQsCWZicCznO8HV.jpg</image:loc>
+      <image:title>Бенто торт корейский</image:title>
+      <image:caption>Самый модный, красивый, оригинальный, на праздник! Бенто торт корейский — последнее веяние кондитерской моды. Это торты маленького размера, на одного-двух человек, но сделанные по всем правилам — с би</image:caption>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://im-edok/recipe/salat-cezar-klassicheskii-s-kuricei</loc>
+    <lastmod>2025-11-04T13:55:05+00:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://im-edok/storage/recipes/VBrZd7fVwU6566FM5AisGyWSWGCNGHXYGa00WDPe.jpg</image:loc>
+      <image:title>Салат Цезарь классический с курицей</image:title>
+      <image:caption>Оригинальный, классический, вкусный, по любому поводу! Салат Цезарь классический с курицей названный так совсем не в честь римского императора, а по имени шеф-повара Цезаря Кардини, который, по легенд</image:caption>
+    </image:image>
   </url>
   <url>
     <loc>https://im-edok/recipe/nutella-bez-orexov-domashnyaya-s-kakao</loc>
@@ -52,7 +162,7 @@
   </url>
   <url>
     <loc>https://im-edok/recipe/yaichnica-v-aerogrile</loc>
-    <lastmod>2025-11-04T13:19:11+00:00</lastmod>
+    <lastmod>2025-11-04T13:21:58+00:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <image:image>
