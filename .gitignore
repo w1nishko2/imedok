@@ -22,3 +22,7 @@ yarn-error.log
 /storage/logs/scheduler.log
 /storage/logs/parser.log
 /storage/logs/sitemap.log
+access_log
+error_log
+storage/framework/sessions/*
+storage/framework/views/*
