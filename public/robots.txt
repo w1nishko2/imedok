@@ -1,0 +1,26 @@
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /login
+Disallow: /register
+
+# Sitemap
+Sitemap: https://im-edok/sitemap.xml
+
+# Crawl-delay для вежливого краулинга
+Crawl-delay: 1
+
+# Специфичные правила для разных поисковиков
+User-agent: Googlebot
+Allow: /
+Disallow: /admin/
+
+User-agent: Yandex
+Allow: /
+Disallow: /admin/
+Crawl-delay: 2
+
+User-agent: bingbot
+Allow: /
+Disallow: /admin/
+
