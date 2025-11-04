@@ -29,6 +29,11 @@ Route::get('/category/{slug}', [App\Http\Controllers\CategoryController::class, 
 Route::get('/sitemap.xml', [App\Http\Controllers\SitemapController::class, 'index'])->name('sitemap');
 Route::get('/robots.txt', [App\Http\Controllers\SitemapController::class, 'robots'])->name('robots');
 
+// Policy & Contact routes
+Route::get('/privacy-policy', [App\Http\Controllers\PolicyController::class, 'privacy'])->name('privacy.policy');
+Route::get('/terms', [App\Http\Controllers\PolicyController::class, 'terms'])->name('terms');
+Route::get('/contact', [App\Http\Controllers\PolicyController::class, 'contact'])->name('contact');
+
 // RSS/Atom feeds (новое для 2025)
 Route::get('/rss', [App\Http\Controllers\RssController::class, 'recipes'])->name('rss.recipes');
 Route::get('/feed', [App\Http\Controllers\RssController::class, 'recipes'])->name('rss.feed');

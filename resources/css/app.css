@@ -4,6 +4,9 @@
 /* Bootstrap CSS */
 @import 'bootstrap/dist/css/bootstrap.min.css';
 
+/* Cookie Consent Modal */
+@import './cookie-consent.css';
+
 /* Custom Variables */
 :root {
     --bs-body-bg: #f8fafc;
@@ -86,4 +89,36 @@ html {
 
 .recipe-link .recipe-card {
     cursor: pointer;
+}
+
+/* Footer Styles */
+footer .hover-link {
+    transition: color 0.2s ease;
+}
+
+footer .hover-link:hover {
+    color: #ffffff !important;
+}
+
+footer hr {
+    opacity: 0.2;
+}
+
+/* Отступ для body чтобы footer не перекрывал контент */
+body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+.text-muted {
+    color: #ffffff !important;
+}
+#app {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+main {
+    flex: 1;
 }

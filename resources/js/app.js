@@ -1,5 +1,6 @@
 import './bootstrap';
 import InfiniteScroll from './infinite-scroll';
+import CookieConsent from './cookie-consent';
 
 // Инициализация infinite scroll при загрузке страницы
 document.addEventListener('DOMContentLoaded', function() {
@@ -12,4 +13,7 @@ document.addEventListener('DOMContentLoaded', function() {
             threshold: 300
         });
     }
+
+    // Инициализация Cookie Consent Modal
+    new CookieConsent();
 });

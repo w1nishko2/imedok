@@ -99,6 +99,73 @@
         <main class="py-4">
             @yield('content')
         </main>
+
+        <!-- Footer -->
+        <footer class="bg-dark text-light py-5 mt-5">
+            <div class="container">
+                <div class="row">
+                    <!-- О проекте -->
+                    <div class="col-md-4 mb-4">
+                        <h5 class="mb-3">🍽️ {{ config('app.name') }}</h5>
+                        <p class="text-muted">
+                            Кулинарный портал с тысячами проверенных рецептов на любой вкус. 
+                            Готовьте с удовольствием!
+                        </p>
+                    </div>
+
+                    <!-- Навигация -->
+                    <div class="col-md-2 mb-4">
+                        <h6 class="mb-3">Навигация</h6>
+                        <ul class="list-unstyled">
+                            <li class="mb-2"><a href="{{ route('home') }}" class="text-muted text-decoration-none hover-link">Главная</a></li>
+                            <li class="mb-2"><a href="{{ route('categories.index') }}" class="text-muted text-decoration-none hover-link">Категории</a></li>
+                            <li class="mb-2"><a href="{{ route('contact') }}" class="text-muted text-decoration-none hover-link">Контакты</a></li>
+                        </ul>
+                    </div>
+
+                    <!-- Документы -->
+                    <div class="col-md-3 mb-4">
+                        <h6 class="mb-3">Документы</h6>
+                        <ul class="list-unstyled">
+                            <li class="mb-2"><a href="{{ route('privacy.policy') }}" class="text-muted text-decoration-none hover-link">Политика конфиденциальности</a></li>
+                            <li class="mb-2"><a href="{{ route('terms') }}" class="text-muted text-decoration-none hover-link">Пользовательское соглашение</a></li>
+                        </ul>
+                    </div>
+
+                    <!-- Социальные сети -->
+                    <div class="col-md-3 mb-4">
+                        <h6 class="mb-3">Мы в соцсетях</h6>
+                        <div class="d-flex flex-column gap-2">
+                            <a href="https://t.me/imedokru" target="_blank" class="text-muted text-decoration-none hover-link d-flex align-items-center">
+                                <i class="bi bi-telegram me-2"></i> Telegram
+                            </a>
+                            <a href="https://dzen.ru/imedok" target="_blank" class="text-muted text-decoration-none hover-link d-flex align-items-center">
+                                <i class="bi bi-browser-chrome me-2"></i> Яндекс.Дзен
+                            </a>
+                            <a href="mailto:w1nishko@yandex.ru" class="text-muted text-decoration-none hover-link d-flex align-items-center">
+                                <i class="bi bi-envelope me-2"></i> Email
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <hr class="my-4 bg-secondary">
+
+                <div class="row">
+                    <div class="col-md-6 text-muted small">
+                        <p class="mb-0">
+                            © {{ date('Y') }} {{ config('app.name') }}. Все права защищены.<br>
+                            ИП: Лукманов Даниил Равильевич (Самозанятый)
+                        </p>
+                    </div>
+                    <div class="col-md-6 text-md-end text-muted small">
+                        <p class="mb-0">
+                            Сделано с ❤️ для любителей готовить
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </footer>
     </div>
 
     <!-- Кнопка "Назад" для мобильных -->

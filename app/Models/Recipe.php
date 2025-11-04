@@ -60,9 +60,9 @@ class Recipe extends Model
     }
 
     /**
-     * Основная категория рецепта
+     * Получить первую категорию рецепта
      */
-    public function category()
+    public function getPrimaryCategoryAttribute()
     {
         return $this->categories()->first();
     }

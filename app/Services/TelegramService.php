@@ -12,29 +12,42 @@ use Illuminate\Support\Str;
 class TelegramService
 {
     protected BotApi $bot;
-    protected string $channelId;
+    protected ?string $channelId;
 
     public function __construct()
     {
-        $this->bot = new BotApi(config('services.telegram.bot_token'));
+        $botToken = config('services.telegram.bot_token');
         $this->channelId = config('services.telegram.channel_id');
+
+        if (!$botToken) {
+            throw new \Exception('Telegram bot token is not configured. Please set TELEGRAM_BOT_TOKEN in .env file.');
+        }
+
+        if (!$this->channelId) {
+            throw new \Exception('Telegram channel ID is not configured. Please set TELEGRAM_CHANNEL_ID in .env file.');
+        }
+
+        $this->bot = new BotApi($botToken);
     }
 
     /**
      * Публикация рецепта в Telegram канал
      */
-    public function publishRecipe(Recipe $recipe): bool
+    public function publishRecipe(Recipe $recipe, bool $withButton = false): bool
     {
         try {
-            $message = $this->formatRecipeMessage($recipe);
-            $recipeUrl = route('recipe.show', $recipe->slug);
-
-            // Создаем клавиатуру с кнопкой
-            $keyboard = new InlineKeyboardMarkup([
-                [
-                    ['text' => '👨‍🍳 Смотреть рецепт', 'url' => $recipeUrl]
-                ]
-            ]);
+            $message = $this->formatRecipeMessage($recipe, !$withButton);
+            
+            // Если withButton = false, не добавляем клавиатуру (для совместимости с Дзеном)
+            $keyboard = null;
+            if ($withButton) {
+                $recipeUrl = route('recipe.show', $recipe->slug);
+                $keyboard = new InlineKeyboardMarkup([
+                    [
+                        ['text' => '👨‍🍳 Смотреть рецепт', 'url' => $recipeUrl]
+                    ]
+                ]);
+            }
 
             // Если есть изображение - отправляем с фото
             if ($recipe->image_path && file_exists(storage_path('app/public/' . $recipe->image_path))) {
@@ -63,7 +76,8 @@ class TelegramService
 
             Log::info('Recipe published to Telegram', [
                 'recipe_id' => $recipe->id,
-                'recipe_title' => $recipe->title
+                'recipe_title' => $recipe->title,
+                'with_button' => $withButton
             ]);
 
             return true;
@@ -82,12 +96,12 @@ class TelegramService
     /**
      * Форматирование сообщения для Telegram
      */
-    protected function formatRecipeMessage(Recipe $recipe): string
+    protected function formatRecipeMessage(Recipe $recipe, bool $includeLinkInText = false): string
     {
         $message = "";
         
         // Заголовок с эмодзи
-        $emoji = $this->getCategoryEmoji($recipe->category);
+        $emoji = $this->getCategoryEmoji($recipe->primary_category);
         $message .= "{$emoji} <b>" . htmlspecialchars($recipe->title) . "</b>\n\n";
 
         // Описание (обрезаем если слишком длинное)
@@ -120,8 +134,8 @@ class TelegramService
         }
 
         // Категория
-        if ($recipe->category) {
-            $message .= "📂 Категория: " . htmlspecialchars($recipe->category->name) . "\n";
+        if ($recipe->primary_category) {
+            $message .= "📂 Категория: " . htmlspecialchars($recipe->primary_category->name) . "\n";
         }
 
         // Калорийность
@@ -130,6 +144,14 @@ class TelegramService
         }
 
         $message .= "\n";
+        
+        // Ссылки (если не будет кнопки - добавляем ссылку в текст)
+        if ($includeLinkInText) {
+            $recipeUrl = route('recipe.show', $recipe->slug);
+            $message .= "🌐 Полный рецепт: {$recipeUrl}\n";
+        }
+        
+        $message .= "📢 Наш канал: https://t.me/imedokru\n\n";
         
         // Хештеги
         $message .= $this->generateHashtags($recipe);
@@ -187,8 +209,8 @@ class TelegramService
         $hashtags = ['#рецепт', '#кулинария', '#яедок'];
 
         // Хештег категории
-        if ($recipe->category) {
-            $categoryTag = Str::slug($recipe->category->name, '');
+        if ($recipe->primary_category) {
+            $categoryTag = Str::slug($recipe->primary_category->name, '');
             $hashtags[] = '#' . $categoryTag;
         }
 
@@ -209,6 +231,172 @@ class TelegramService
         }
 
         return implode(' ', $hashtags);
+    }
+
+    /**
+     * Публикация подборки из 5 случайных рецептов
+     */
+    public function publishRecipeCollection(?string $categoryName = null): bool
+    {
+        try {
+            $query = \App\Models\Recipe::query();
+            $originalCategory = $categoryName;
+            
+            // Если указана категория, пытаемся фильтровать по ней
+            if ($categoryName) {
+                $categoryQuery = clone $query;
+                $categoryQuery->whereHas('categories', function($q) use ($categoryName) {
+                    $q->where('name', 'LIKE', "%{$categoryName}%");
+                });
+                
+                $recipesInCategory = $categoryQuery->count();
+                
+                // Если в категории меньше 5 рецептов - берем смешанную подборку
+                if ($recipesInCategory < 5) {
+                    Log::warning('Not enough recipes in category, switching to mixed collection', [
+                        'category' => $categoryName,
+                        'found' => $recipesInCategory,
+                        'required' => 5
+                    ]);
+                    $categoryName = null; // Переключаемся на смешанную подборку
+                } else {
+                    $query = $categoryQuery; // Используем фильтрованный запрос
+                }
+            }
+            
+            // Получаем 5 случайных рецептов
+            $recipes = $query->inRandomOrder()->limit(5)->get();
+            
+            if ($recipes->count() < 5) {
+                Log::error('Not enough recipes in database for collection', [
+                    'found' => $recipes->count(),
+                    'required' => 5
+                ]);
+                return false;
+            }
+            
+            $message = $this->formatCollectionMessage($recipes, $categoryName);
+            
+            // Берем фото первого рецепта
+            $firstRecipe = $recipes->first();
+            $hasPhoto = $firstRecipe && $firstRecipe->image_path && file_exists(storage_path('app/public/' . $firstRecipe->image_path));
+            
+            // Отправляем сообщение с фото или без
+            if ($hasPhoto) {
+                $photoPath = storage_path('app/public/' . $firstRecipe->image_path);
+                
+                $this->bot->sendPhoto(
+                    $this->channelId,
+                    new \CURLFile($photoPath),
+                    $message,
+                    null,
+                    null, // без кнопки для совместимости с Дзеном
+                    false,
+                    'HTML'
+                );
+            } else {
+                // Если нет фото - отправляем только текст
+                $this->bot->sendMessage(
+                    $this->channelId,
+                    $message,
+                    'HTML',
+                    true, // disable_web_page_preview
+                    null,
+                    null
+                );
+            }
+            
+            Log::info('Recipe collection published to Telegram', [
+                'original_category' => $originalCategory,
+                'actual_category' => $categoryName ?? 'mixed',
+                'recipes_count' => $recipes->count(),
+                'with_photo' => $hasPhoto
+            ]);
+            
+            return true;
+            
+        } catch (\Exception $e) {
+            Log::error('Failed to publish recipe collection to Telegram', [
+                'category' => $categoryName,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            return false;
+        }
+    }
+    
+    /**
+     * Форматирование сообщения для подборки рецептов
+     */
+    protected function formatCollectionMessage($recipes, ?string $categoryName = null): string
+    {
+        $message = "";
+        
+        // Заголовок подборки
+        $emoji = $this->getCollectionEmoji();
+        if ($categoryName) {
+            $message .= "{$emoji} <b>Подборка рецептов: {$categoryName}</b>\n\n";
+        } else {
+            $message .= "{$emoji} <b>Топ-5 рецептов дня</b>\n\n";
+        }
+        
+        $message .= "Мы подобрали для вас 5 отличных рецептов:\n\n";
+        
+        // Список рецептов
+        foreach ($recipes as $index => $recipe) {
+            $number = $index + 1;
+            $recipeEmoji = $this->getCategoryEmoji($recipe->primary_category);
+            $recipeUrl = route('recipe.show', $recipe->slug);
+            
+            $message .= "{$number}. {$recipeEmoji} <a href=\"{$recipeUrl}\">" . htmlspecialchars($recipe->title) . "</a>\n";
+            
+            // Добавляем краткое описание (если есть)
+            if ($recipe->description) {
+                $shortDescription = Str::limit(strip_tags($recipe->description), 80);
+                $message .= "   " . htmlspecialchars($shortDescription) . "\n";
+            }
+            
+            // Добавляем краткую информацию
+            $info = [];
+            if ($recipe->total_time) {
+                $info[] = "⏰ {$recipe->total_time} мин";
+            }
+            if ($recipe->calories) {
+                $info[] = "🔥 {$recipe->calories} ккал";
+            }
+            
+            if (!empty($info)) {
+                $message .= "   " . implode(" · ", $info) . "\n";
+            }
+            
+            $message .= "\n";
+        }
+        
+        // Призыв к действию
+        $message .= "━━━━━━━━━━━━━━━━━━\n";
+        $message .= "👨‍🍳 Готовьте с удовольствием!\n";
+        $message .= "📢 Наш канал: https://t.me/imedokru\n";
+        $message .= "🌐 Сайт: " . url('/') . "\n\n";
+        
+        // Хештеги
+        $hashtags = ['#подборка', '#рецепты', '#яедок'];
+        if ($categoryName) {
+            $categoryTag = Str::slug($categoryName, '');
+            $hashtags[] = '#' . $categoryTag;
+        }
+        $message .= implode(' ', $hashtags);
+        
+        return $message;
+    }
+    
+    /**
+     * Получить эмодзи для подборки
+     */
+    protected function getCollectionEmoji(): string
+    {
+        $emojis = ['📚', '🎯', '⭐', '💎', '🏆', '✨', '🎁'];
+        return $emojis[array_rand($emojis)];
     }
 
     /**

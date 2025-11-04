@@ -16,6 +16,7 @@ class PublishRecipeToTelegram extends Command
      */
     protected $signature = 'telegram:publish-recipe 
                             {--recipe-id= : ID конкретного рецепта для публикации}
+                            {--with-button : Добавить кнопку "Смотреть рецепт" (может не синхронизироваться с Дзеном)}
                             {--test : Тестовый режим - только проверка соединения}';
 
     /**
@@ -121,8 +122,17 @@ class PublishRecipeToTelegram extends Command
         ]);
 
         try {
+            // Определяем, нужна ли кнопка
+            $withButton = $this->option('with-button');
+            
+            if (!$withButton) {
+                $this->info('ℹ️ Публикация БЕЗ кнопки (совместимо с Яндекс.Дзеном)');
+            } else {
+                $this->warn('⚠️ Публикация С кнопкой (может не синхронизироваться с Дзеном)');
+            }
+
             // Публикуем рецепт
-            $result = $this->telegramService->publishRecipe($recipe);
+            $result = $this->telegramService->publishRecipe($recipe, $withButton);
 
             if ($result) {
                 // Отмечаем как успешно опубликованный
@@ -130,6 +140,10 @@ class PublishRecipeToTelegram extends Command
                 
                 $this->info("✅ Рецепт успешно опубликован в Telegram!");
                 $this->info("🔗 Ссылка на рецепт: " . route('recipe.show', $recipe->slug));
+                
+                if (!$withButton) {
+                    $this->info("📢 Пост совместим с Яндекс.Дзеном - будет автоматически опубликован в канале Дзена");
+                }
                 
                 return Command::SUCCESS;
             } else {
