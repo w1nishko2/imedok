@@ -1,6 +1,36 @@
+# Redirect all requests to public folder
 <IfModule mod_rewrite.c>
     RewriteEngine on
     AddDefaultCharset UTF-8
-    RewriteCond %{REQUEST_URI} !^public
-    RewriteRule ^(.*)$ public/$1 [L]
+    
+    # If request is not for public directory
+    RewriteCond %{REQUEST_URI} !^/public/
+    
+    # And not for existing files in root
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    
+    # Redirect to public folder
+    RewriteRule ^(.*)$ public/$1 [L,QSA]
 </IfModule>
+
+# If mod_rewrite is not available, show index.php from public
+<IfModule !mod_rewrite.c>
+    # Allow direct access to public folder
+    DirectoryIndex public/index.php index.php
+</IfModule>
+
+# Security: Prevent directory listing
+Options -Indexes
+
+# Security: Disable access to .env and other sensitive files
+<FilesMatch "^\.">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# Allow .well-known folder (for security.txt, etc.)
+<DirectoryMatch "\.well-known">
+    Order allow,deny
+    Allow from all
+</DirectoryMatch>
