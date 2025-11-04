@@ -1,11 +1,109 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# IM-EDOK - Сайт рецептов
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Laravel-приложение для парсинга и публикации рецептов с сайта 1000.menu.
+
+## 🚀 Основные возможности
+
+- **Автоматический парсинг рецептов** с сайта 1000.menu
+- **Очередь обработки** рецептов
+- **SEO-оптимизация**: автоматическая генерация sitemap
+- **Telegram-бот** для публикации рецептов
+- **Адаптивный дизайн** с поддержкой мобильных устройств
+
+## 📋 Доступные команды
+
+### Парсинг рецептов
+
+```bash
+# Основная команда парсинга (рекомендуется)
+php artisan recipes:parse --count=30
+
+# Сбор URL в очередь
+php artisan recipes:collect-urls --count=100
+
+# Обработка очереди
+php artisan recipes:process-queue --batch=10
+
+# Статистика очереди
+php artisan queue:stats
+```
+
+### Системные команды
+
+```bash
+# Генерация sitemap
+php artisan sitemap:generate
+
+# Проверка базы данных
+php artisan db:check
+
+# Отладка парсера
+php artisan parser:debug
+```
+
+### Telegram
+
+```bash
+# Публикация рецепта в Telegram
+php artisan telegram:publish {recipe_id}
+
+# Публикация подборки
+php artisan telegram:publish-collection
+```
+
+## ⚙️ Автоматизация (Cron)
+
+Расписание в `app/Console/Kernel.php`:
+
+- **Каждые 30 минут**: парсинг 42 рецептов
+- **Каждые 2 часа**: обновление sitemap
+
+## 📁 Структура проекта
+
+```
+app/
+├── Console/Commands/     # Artisan команды
+├── Http/Controllers/     # Контроллеры
+├── Models/              # Модели данных
+├── Services/            # Бизнес-логика
+│   ├── RecipeParserService.php
+│   ├── RecipeListParserService.php
+│   ├── TelegramService.php
+│   ├── SeoService.php
+│   └── SitemapService.php
+└── Observers/           # Наблюдатели моделей
+```
+
+## 🛠️ Установка
+
+```bash
+# Установка зависимостей
+composer install
+npm install
+
+# Настройка окружения
+cp .env.example .env
+php artisan key:generate
+
+# Миграции
+php artisan migrate
+
+# Сборка фронтенда
+npm run build
+```
+
+## 📊 Технологии
+
+- **Backend**: Laravel 10
+- **Frontend**: Vue.js 3 + Vite
+- **База данных**: MySQL
+- **Парсинг**: Guzzle + DOMDocument
+- **API**: Telegram Bot API
+
+## 📝 Лицензия
+
+Проект разработан для образовательных целей.
+
 
 ## About Laravel
 

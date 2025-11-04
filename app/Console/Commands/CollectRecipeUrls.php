@@ -3,7 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Models\RecipeQueue;
-use App\Services\AjaxScrollParserService;
+use App\Services\RecipeListParserService;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
 
@@ -14,7 +14,7 @@ class CollectRecipeUrls extends Command
 
     protected $description = 'Сбор URL рецептов и добавление в очередь (легкая задача, каждые 15 мин)';
 
-    public function handle(AjaxScrollParserService $parser): int
+    public function handle(RecipeListParserService $parser): int
     {
         $targetCount = (int) $this->option('count');
 
@@ -27,7 +27,7 @@ class CollectRecipeUrls extends Command
         $this->newLine();
 
         // Собираем URL
-        $urls = $parser->parseMultipleSources($targetCount);
+        $urls = $parser->parseMultiplePages($targetCount);
 
         if (empty($urls)) {
             $this->warn("⚠️ Не найдено новых рецептов для добавления в очередь");
