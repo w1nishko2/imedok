@@ -1,0 +1,97 @@
+# ============================================
+# CRONTAB НАСТРОЙКА ДЛЯ АВТОПУБЛИКАЦИИ В TELEGRAM
+# ============================================
+
+# Публикация рецепта каждые 10 минут
+*/10 * * * * cd /path/to/im-edok && php artisan telegram:publish-recipe >> /dev/null 2>&1
+
+# ============================================
+# АЛЬТЕРНАТИВНЫЕ ВАРИАНТЫ НАСТРОЙКИ
+# ============================================
+
+# 1. С логированием (рекомендуется для отладки)
+*/10 * * * * cd /path/to/im-edok && php artisan telegram:publish-recipe >> storage/logs/telegram-cron.log 2>&1
+
+# 2. Каждые 5 минут (более частая публикация)
+*/5 * * * * cd /path/to/im-edok && php artisan telegram:publish-recipe >> /dev/null 2>&1
+
+# 3. Каждые 15 минут (менее частая публикация)
+*/15 * * * * cd /path/to/im-edok && php artisan telegram:publish-recipe >> /dev/null 2>&1
+
+# 4. Каждый час (для больших каналов с редкими постами)
+0 * * * * cd /path/to/im-edok && php artisan telegram:publish-recipe >> /dev/null 2>&1
+
+# 5. Только в рабочие часы (9:00 - 21:00) каждые 10 минут
+*/10 9-21 * * * cd /path/to/im-edok && php artisan telegram:publish-recipe >> /dev/null 2>&1
+
+# 6. Три раза в день (утро, обед, вечер) - 9:00, 13:00, 19:00
+0 9,13,19 * * * cd /path/to/im-edok && php artisan telegram:publish-recipe >> /dev/null 2>&1
+
+# ============================================
+# ИНСТРУКЦИЯ ПО УСТАНОВКЕ CRONTAB НА ХОСТИНГЕ
+# ============================================
+
+# ШАГ 1: Узнать полный путь к вашему проекту
+# Выполните команду: pwd
+# Пример вывода: /home/username/domains/im-edok.ru/public_html
+
+# ШАГ 2: Узнать полный путь к PHP
+# Выполните команду: which php
+# Пример вывода: /usr/bin/php или /usr/local/bin/php74
+
+# ШАГ 3: Заменить пути в команде crontab
+# Формат:
+# */10 * * * * /usr/bin/php /home/username/domains/im-edok.ru/public_html/artisan telegram:publish-recipe >> /dev/null 2>&1
+
+# ШАГ 4: Добавить в crontab через панель управления хостингом
+# - ISPmanager: Инструменты → Планировщик задач (cron)
+# - cPanel: Cron Jobs
+# - Plesk: Планировщик задач
+
+# ШАГ 5: Или через SSH (если доступен)
+# crontab -e
+# Добавьте строку и сохраните (Ctrl+X, Y, Enter)
+
+# ============================================
+# ПОЛНАЯ КОМАНДА ДЛЯ ХОСТИНГА (ЗАМЕНИТЕ ПУТИ!)
+# ============================================
+
+# Замените:
+# - /usr/bin/php → на ваш путь к PHP
+# - /home/username/domains/im-edok.ru/public_html → на путь к вашему проекту
+
+*/10 * * * * /usr/bin/php /home/username/domains/im-edok.ru/public_html/artisan telegram:publish-recipe >> /home/username/domains/im-edok.ru/public_html/storage/logs/telegram-cron.log 2>&1
+
+# ============================================
+# ПРОВЕРКА РАБОТЫ CRONTAB
+# ============================================
+
+# 1. Проверить список запущенных cron задач:
+# crontab -l
+
+# 2. Просмотреть логи (если включено логирование):
+# tail -f /path/to/im-edok/storage/logs/telegram-cron.log
+
+# 3. Вручную запустить команду для тестирования:
+# cd /path/to/im-edok && php artisan telegram:publish-recipe
+
+# 4. Проверить, что бот имеет права на публикацию в канале:
+# php artisan telegram:publish-recipe --test
+
+# ============================================
+# ОБЪЯСНЕНИЕ ФОРМАТА CRONTAB
+# ============================================
+
+# */10 * * * * - каждые 10 минут
+# │   │ │ │ │
+# │   │ │ │ └─── День недели (0-7, 0 и 7 = воскресенье)
+# │   │ │ └───── Месяц (1-12)
+# │   │ └─────── День месяца (1-31)
+# │   └───────── Час (0-23)
+# └─────────────  Минута (0-59)
+
+# Примеры:
+# 0 */2 * * *     - каждые 2 часа
+# 30 8 * * 1-5    - каждый будний день в 8:30
+# 0 0 * * 0       - каждое воскресенье в полночь
+# */30 * * * *    - каждые 30 минут

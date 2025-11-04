@@ -26,6 +26,11 @@ export default class InfiniteScroll {
         // Получаем URL следующей страницы из data-атрибута
         this.nextPageUrl = container.dataset.nextPage;
         
+        // Принудительно заменяем HTTP на HTTPS для безопасности
+        if (this.nextPageUrl && this.nextPageUrl.startsWith('http://')) {
+            this.nextPageUrl = this.nextPageUrl.replace('http://', 'https://');
+        }
+        
         if (!this.nextPageUrl || this.nextPageUrl === 'null' || this.nextPageUrl === '') {
             this.hasMore = false;
             this.hideLoader();
@@ -144,12 +149,18 @@ export default class InfiniteScroll {
     
     updateNextPageUrl(currentUrl) {
         // Извлекаем номер текущей страницы из URL
-        const url = new URL(currentUrl);
+        const url = new URL(currentUrl, window.location.origin);
         const currentPage = parseInt(url.searchParams.get('page') || '1');
         const nextPage = currentPage + 1;
         
-        // Формируем URL следующей страницы
+        // Формируем URL следующей страницы, всегда используя HTTPS для безопасности
         url.searchParams.set('page', nextPage);
+        // Принудительно используем HTTPS если страница загружена через HTTPS
+        if (window.location.protocol === 'https:') {
+            url.protocol = 'https:';
+        } else {
+            url.protocol = window.location.protocol;
+        }
         this.nextPageUrl = url.toString();
         
         // Проверяем, есть ли еще страницы

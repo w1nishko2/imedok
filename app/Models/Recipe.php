@@ -60,6 +60,32 @@ class Recipe extends Model
     }
 
     /**
+     * Основная категория рецепта
+     */
+    public function category()
+    {
+        return $this->categories()->first();
+    }
+
+    /**
+     * Связь с постами в Telegram
+     */
+    public function telegramPosts()
+    {
+        return $this->hasMany(TelegramPost::class);
+    }
+
+    /**
+     * Проверка, был ли рецепт опубликован в Telegram
+     */
+    public function isPublishedToTelegram(): bool
+    {
+        return $this->telegramPosts()
+            ->where('status', 'success')
+            ->exists();
+    }
+
+    /**
      * Scope для поиска рецептов по различным параметрам
      * 
      * @param \Illuminate\Database\Eloquent\Builder $query
