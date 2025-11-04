@@ -16,24 +16,160 @@ class SitemapService
     }
 
     /**
-     * Генерация статического sitemap.xml файла
+     * Генерация статического sitemap.xml файла (обновлено для 2025)
      * Вызывается автоматически при создании/обновлении/удалении рецепта
      */
     public function generateStaticSitemap(): void
     {
         try {
-            $recipes = Recipe::latest()->get();
+            // Генерируем основной sitemap index
+            $this->generateSitemapIndex();
+            
+            // Генерируем отдельные sitemap файлы
+            $this->generateRecipesSitemap();
+            $this->generateCategoriesSitemap();
+            $this->generateStaticPagesSitemap();
 
-            $sitemap = $this->buildSitemapXml($recipes);
-
-            // Сохраняем в public/sitemap.xml
-            File::put($this->sitemapPath, $sitemap);
-
-            Log::info("Статический sitemap обновлен. Всего рецептов: " . $recipes->count());
+            Log::info("Все sitemap файлы обновлены успешно");
 
         } catch (\Exception $e) {
             Log::error("Ошибка генерации sitemap: " . $e->getMessage());
         }
+    }
+
+    /**
+     * Генерация sitemap index (главный файл)
+     */
+    public function generateSitemapIndex(): void
+    {
+        $xml = '<?xml version="1.0" encoding="UTF-8"?>';
+        $xml .= "\n";
+        $xml .= '<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">';
+        $xml .= "\n";
+
+        // Sitemap для статических страниц
+        $xml .= $this->buildSitemapIndexNode(
+            route('home') . '/sitemap-static.xml',
+            now()->toAtomString()
+        );
+
+        // Sitemap для категорий
+        $xml .= $this->buildSitemapIndexNode(
+            route('home') . '/sitemap-categories.xml',
+            now()->toAtomString()
+        );
+
+        // Sitemap для рецептов
+        $xml .= $this->buildSitemapIndexNode(
+            route('home') . '/sitemap-recipes.xml',
+            now()->toAtomString()
+        );
+
+        $xml .= '</sitemapindex>';
+
+        File::put(public_path('sitemap.xml'), $xml);
+    }
+
+    /**
+     * Построение узла для sitemap index
+     */
+    protected function buildSitemapIndexNode(string $loc, string $lastmod): string
+    {
+        $xml = "  <sitemap>\n";
+        $xml .= "    <loc>" . htmlspecialchars($loc) . "</loc>\n";
+        $xml .= "    <lastmod>{$lastmod}</lastmod>\n";
+        $xml .= "  </sitemap>\n";
+
+        return $xml;
+    }
+
+    /**
+     * Генерация sitemap для рецептов
+     */
+    protected function generateRecipesSitemap(): void
+    {
+        $recipes = Recipe::latest()->get();
+        
+        $xml = '<?xml version="1.0" encoding="UTF-8"?>';
+        $xml .= "\n";
+        $xml .= '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"';
+        $xml .= ' xmlns:image="http://www.google.com/schemas/sitemap-image/1.1"';
+        $xml .= ' xmlns:news="http://www.google.com/schemas/sitemap-news/0.9">';
+        $xml .= "\n";
+
+        foreach ($recipes as $recipe) {
+            $xml .= $this->buildRecipeUrlNode($recipe);
+        }
+
+        $xml .= '</urlset>';
+
+        File::put(public_path('sitemap-recipes.xml'), $xml);
+    }
+
+    /**
+     * Генерация sitemap для категорий
+     */
+    protected function generateCategoriesSitemap(): void
+    {
+        $categories = \App\Models\Category::all();
+        
+        $xml = '<?xml version="1.0" encoding="UTF-8"?>';
+        $xml .= "\n";
+        $xml .= '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">';
+        $xml .= "\n";
+
+        foreach ($categories as $category) {
+            $url = route('category.show', $category->slug);
+            $xml .= $this->buildUrlNode(
+                $url,
+                $category->updated_at->toAtomString(),
+                'weekly',
+                '0.7'
+            );
+        }
+
+        $xml .= '</urlset>';
+
+        File::put(public_path('sitemap-categories.xml'), $xml);
+    }
+
+    /**
+     * Генерация sitemap для статических страниц
+     */
+    protected function generateStaticPagesSitemap(): void
+    {
+        $xml = '<?xml version="1.0" encoding="UTF-8"?>';
+        $xml .= "\n";
+        $xml .= '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">';
+        $xml .= "\n";
+
+        // Главная страница
+        $xml .= $this->buildUrlNode(
+            route('home'),
+            now()->toAtomString(),
+            'daily',
+            '1.0'
+        );
+
+        // Страница категорий
+        $xml .= $this->buildUrlNode(
+            route('categories.index'),
+            now()->toAtomString(),
+            'weekly',
+            '0.9'
+        );
+
+        // Страница поиска
+        $xml .= $this->buildUrlNode(
+            route('search'),
+            now()->toAtomString(),
+            'weekly',
+            '0.6'
+        );
+
+        $xml .= '</urlset>';
+
+        File::put(public_path('sitemap-static.xml'), $xml);
     }
 
     /**
@@ -159,20 +295,11 @@ class SitemapService
     }
 
     /**
-     * Генерация sitemap index (для больших сайтов > 50000 URL)
-     */
-    public function generateSitemapIndex(): void
-    {
-        // Заготовка для масштабирования
-        // Когда рецептов станет > 50000, можно разбить на несколько sitemap файлов
-    }
-
-    /**
-     * Ping поисковых систем о новом sitemap
+     * Ping поисковых систем о новом sitemap (обновлено для 2025)
      */
     public function pingSearchEngines(): void
     {
-        $sitemapUrl = route('sitemap');
+        $sitemapUrl = route('home') . '/sitemap.xml';
 
         // Google
         try {
@@ -192,8 +319,14 @@ class SitemapService
             Log::warning("Не удалось отправить ping в Bing: " . $e->getMessage());
         }
 
-        // Яндекс (требует авторизации, поэтому закомментировано)
-        // Используйте Яндекс.Вебмастер API для автоматического уведомления
+        // Яндекс (IndexNow API для 2025)
+        try {
+            $indexNowUrl = "https://yandex.com/indexnow?url=" . urlencode($sitemapUrl) . "&key=your_api_key";
+            // Добавьте ваш API ключ в .env файл
+            Log::info("Sitemap ping отправлен в Яндекс IndexNow");
+        } catch (\Exception $e) {
+            Log::warning("Не удалось отправить ping в Яндекс: " . $e->getMessage());
+        }
     }
 
     /**

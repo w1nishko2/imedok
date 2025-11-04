@@ -188,7 +188,7 @@ class SeoService
     }
 
     /**
-     * Генерация JSON-LD Schema для рецепта
+     * Генерация JSON-LD Schema для рецепта (обновлено для 2025)
      */
     protected function generateRecipeSchema(Recipe $recipe, string $url, ?string $image): array
     {
@@ -196,14 +196,24 @@ class SeoService
             '@context' => 'https://schema.org',
             '@type' => 'Recipe',
             'name' => $recipe->title,
-            'description' => $recipe->description,
+            'description' => $recipe->description ?: $recipe->title,
             'url' => $url,
             'datePublished' => $recipe->created_at->toIso8601String(),
             'dateModified' => $recipe->updated_at->toIso8601String(),
+            'cookingMethod' => 'Традиционный',
+            'recipeCategory' => 'Основное блюдо',
+            'recipeCuisine' => 'Русская',
+            'keywords' => $this->getMetaKeywords($recipe),
         ];
 
         if ($image) {
-            $schema['image'] = [$image];
+            $schema['image'] = [
+                '@type' => 'ImageObject',
+                'url' => $image,
+                'width' => 1200,
+                'height' => 800,
+                'caption' => $recipe->title,
+            ];
         }
 
         // Время приготовления
@@ -219,14 +229,18 @@ class SeoService
 
         // Количество порций
         if ($recipe->servings) {
-            $schema['recipeYield'] = $recipe->servings . ' порций';
+            $schema['recipeYield'] = [
+                '@type' => 'QuantitativeValue',
+                'value' => $recipe->servings,
+                'unitText' => 'порций',
+            ];
         }
 
-        // Рейтинг
+        // Рейтинг (улучшенный для Google)
         if ($recipe->rating > 0 && $recipe->rating_count > 0) {
             $schema['aggregateRating'] = [
                 '@type' => 'AggregateRating',
-                'ratingValue' => $recipe->rating,
+                'ratingValue' => number_format($recipe->rating, 1),
                 'ratingCount' => $recipe->rating_count,
                 'bestRating' => 5,
                 'worstRating' => 1,
@@ -236,26 +250,33 @@ class SeoService
         // Ингредиенты
         if (!empty($recipe->ingredients)) {
             $schema['recipeIngredient'] = array_map(function ($ingredient) {
-                return $ingredient['quantity'] . ' ' . 
-                       $ingredient['measure'] . ' ' . 
-                       $ingredient['name'];
+                $quantity = trim($ingredient['quantity'] ?? '');
+                $measure = trim($ingredient['measure'] ?? '');
+                $name = trim($ingredient['name'] ?? '');
+                
+                return trim("$quantity $measure $name");
             }, $recipe->ingredients);
         }
 
-        // Шаги приготовления
+        // Шаги приготовления (улучшенные для Google)
         if (!empty($recipe->steps)) {
             $schema['recipeInstructions'] = array_map(function ($step) {
-                return [
+                $instruction = [
                     '@type' => 'HowToStep',
                     'position' => $step['step_number'],
                     'text' => $step['description'],
-                    'image' => !empty($step['image']) ? 
-                        asset('storage/' . $step['image']) : null,
+                    'name' => 'Шаг ' . $step['step_number'],
                 ];
+                
+                if (!empty($step['image'])) {
+                    $instruction['image'] = asset('storage/' . $step['image']);
+                }
+                
+                return $instruction;
             }, $recipe->steps);
         }
 
-        // Пищевая ценность
+        // Пищевая ценность (расширенная)
         if (!empty($recipe->nutrition)) {
             $nutrition = $recipe->nutrition;
             $schema['nutrition'] = [
@@ -274,12 +295,40 @@ class SeoService
             if (isset($nutrition['carbs'])) {
                 $schema['nutrition']['carbohydrateContent'] = $nutrition['carbs'] . ' г';
             }
+            if (isset($nutrition['fiber'])) {
+                $schema['nutrition']['fiberContent'] = $nutrition['fiber'] . ' г';
+            }
+            if (isset($nutrition['sugar'])) {
+                $schema['nutrition']['sugarContent'] = $nutrition['sugar'] . ' г';
+            }
+            if (isset($nutrition['sodium'])) {
+                $schema['nutrition']['sodiumContent'] = $nutrition['sodium'] . ' мг';
+            }
         }
 
-        // Автор
+        // Автор (расширенный для Google Discover)
         $schema['author'] = [
             '@type' => 'Organization',
             'name' => config('app.name'),
+            'url' => route('home'),
+            'logo' => [
+                '@type' => 'ImageObject',
+                'url' => asset('/android-chrome-512x512.png'),
+                'width' => 512,
+                'height' => 512,
+            ],
+        ];
+
+        // Издатель (требуется для Google)
+        $schema['publisher'] = [
+            '@type' => 'Organization',
+            'name' => config('app.name'),
+            'logo' => [
+                '@type' => 'ImageObject',
+                'url' => asset('/android-chrome-512x512.png'),
+                'width' => 512,
+                'height' => 512,
+            ],
         ];
 
         // Сложность
@@ -290,6 +339,22 @@ class SeoService
                 'hard' => 'Сложный',
             ];
             $schema['recipeDifficulty'] = $difficultyMap[$recipe->difficulty] ?? 'Средний';
+        }
+
+        // Дополнительные поля для 2025
+        $schema['isAccessibleForFree'] = true;
+        $schema['inLanguage'] = 'ru';
+        
+        // Видео (если есть)
+        if (!empty($recipe->video_url)) {
+            $schema['video'] = [
+                '@type' => 'VideoObject',
+                'name' => $recipe->title,
+                'description' => $recipe->description,
+                'thumbnailUrl' => $image,
+                'contentUrl' => $recipe->video_url,
+                'uploadDate' => $recipe->created_at->toIso8601String(),
+            ];
         }
 
         return $schema;
@@ -323,7 +388,7 @@ class SeoService
     }
 
     /**
-     * Генерация схемы веб-сайта для главной страницы
+     * Генерация схемы веб-сайта для главной страницы (обновлено для 2025)
      */
     protected function generateWebsiteSchema(): array
     {
@@ -331,15 +396,34 @@ class SeoService
             '@context' => 'https://schema.org',
             '@type' => 'WebSite',
             'name' => config('app.name'),
+            'alternateName' => 'Яедок - рецепты с фото',
             'url' => route('home'),
             'description' => 'Коллекция проверенных рецептов с пошаговыми фото',
-            'potentialAction' => [
-                '@type' => 'SearchAction',
-                'target' => [
-                    '@type' => 'EntryPoint',
-                    'urlTemplate' => route('home') . '?search={search_term_string}',
+            'inLanguage' => 'ru',
+            'publisher' => [
+                '@type' => 'Organization',
+                'name' => config('app.name'),
+                'url' => route('home'),
+                'logo' => [
+                    '@type' => 'ImageObject',
+                    'url' => asset('/android-chrome-512x512.png'),
+                    'width' => 512,
+                    'height' => 512,
                 ],
-                'query-input' => 'required name=search_term_string',
+                'sameAs' => [
+                    'https://dzen.ru/imedok',
+                    'https://t.me/imedokru',
+                ],
+            ],
+            'potentialAction' => [
+                [
+                    '@type' => 'SearchAction',
+                    'target' => [
+                        '@type' => 'EntryPoint',
+                        'urlTemplate' => route('search') . '?q={search_term_string}',
+                    ],
+                    'query-input' => 'required name=search_term_string',
+                ],
             ],
         ];
     }

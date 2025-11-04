@@ -29,6 +29,13 @@ Route::get('/category/{slug}', [App\Http\Controllers\CategoryController::class, 
 Route::get('/sitemap.xml', [App\Http\Controllers\SitemapController::class, 'index'])->name('sitemap');
 Route::get('/robots.txt', [App\Http\Controllers\SitemapController::class, 'robots'])->name('robots');
 
+// RSS/Atom feeds (новое для 2025)
+Route::get('/rss', [App\Http\Controllers\RssController::class, 'recipes'])->name('rss.recipes');
+Route::get('/feed', [App\Http\Controllers\RssController::class, 'recipes'])->name('rss.feed');
+Route::get('/atom', [App\Http\Controllers\RssController::class, 'atom'])->name('rss.atom');
+Route::get('/yandex-zen.xml', [App\Http\Controllers\RssController::class, 'yandexZen'])->name('rss.yandex-zen');
+Route::get('/yandex-news.xml', [App\Http\Controllers\RssController::class, 'yandexNews'])->name('rss.yandex-news');
+
 if (app()->environment('production')) {
     URL::forceScheme('https');
 }
